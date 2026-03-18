@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="google-site-verification" content="aUZy75HjCKSKZks4imBJuMAtw-GPIebS8x0JGbiHh0M" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Vitdoc - AI Health Assistant. Describe your symptoms to find potential nutrient deficiencies.">
+    <title>Vitdoc | AI Health Assistant</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Mobile Sidebar Overlay -->
+        <div id="sidebar-overlay" class="sidebar-overlay"></div>
+
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fa-solid fa-leaf logo-icon"></i>
+                    <h2>Vitdoc</h2>
+                </div>
+            </div>
+            
+            <button class="new-chat-btn">
+                <i class="fas fa-plus"></i> New Consultation
+            </button>
+            
+            <div class="history-list" id="history-list">
+                <!-- Dynamically populated via JS -->
+            </div>
+
+            <div class="sidebar-footer">
+                <div class="user-profile">
+                    <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix&backgroundColor=6366f1" alt="User Avatar" class="profile-avatar">
+                    <div class="profile-info">
+                        <span class="profile-name">Guest User</span>
+                        <span class="profile-status">Free Plan</span>
+                    </div>
+                    <i class="fa-solid fa-gear settings-icon"></i>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Chat Area -->
+        <main class="chat-container">
+            <header class="chat-header">
+                <div style="display: flex; align-items: center; gap: 16px;">
+                    <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Open Map">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div>
+                        <h1>Vitamin Deficiency Assistant</h1>
+                        <p>Describe your symptoms, and our AI will analyze potential deficiencies.</p>
+                    </div>
+                </div>
+                <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
+                    <i class="fas fa-moon"></i>
+                </button>
+            </header>
+
+            <div class="chat-messages" id="chat-messages">
+                <!-- Welcome Message -->
+                <div class="message bot-message">
+                    <div class="avatar"><i class="fas fa-robot"></i></div>
+                    <div class="message-content">
+                        Hello! 👋 I'm Vitdoc, your AI health assistant. 
+                        <br><br>
+                        Tell me about any symptoms you're experiencing, such as fatigue, muscle cramps, or skin issues, and I can suggest what vitamins or minerals you might be lacking.
+                        <br><br>
+                        <em>What symptoms have you been feeling lately?</em>
+                    </div>
+                </div>
+                <!-- Dynamic messages injected here via JS -->
+            </div>
+
+            <div class="input-area">
+                <form id="chat-form">
+                    <div class="input-wrapper">
+                        <input type="file" id="image-upload" accept="image/*" style="display: none;">
+                        <button type="button" id="upload-btn" aria-label="Upload Image">
+                            <i class="fas fa-paperclip"></i>
+                        </button>
+                        <textarea id="user-input" placeholder="Type your symptoms here or upload an image..." rows="1" autofocus></textarea>
+                        <button type="submit" id="send-btn" disabled>
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </form>
+                <div class="disclaimer">
+                    <i class="fa-solid fa-circle-info"></i>
+                    Disclaimer: This tool provides AI-generated suggestions based on common symptoms and is NOT a substitute for professional medical advice, diagnosis, or treatment.
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div id="auth-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <button id="close-modal" class="close-btn"><i class="fas fa-times"></i></button>
+            <div class="modal-header">
+                <i class="fa-solid fa-leaf auth-logo"></i>
+                <h2 id="auth-title">Welcome Back</h2>
+                <p id="auth-subtitle">Sign in to sync your consultation history</p>
+            </div>
+            <form id="auth-form">
+                <div class="form-group" id="name-group" style="display: none;">
+                    <label for="auth-name">Full Name</label>
+                    <input type="text" id="auth-name" placeholder="John Doe">
+                </div>
+                <div class="form-group">
+                    <label for="auth-email">Email Address</label>
+                    <input type="email" id="auth-email" placeholder="you@example.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="auth-password">Password</label>
+                    <input type="password" id="auth-password" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="auth-submit-btn" id="auth-submit">Sign In</button>
+            </form>
+            <div class="auth-toggle">
+                <span id="auth-toggle-text">Don't have an account? </span>
+                <button id="auth-toggle-link" class="text-btn">Sign Up</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Questionnaire Modal -->
+    <div id="questionnaire-modal" class="modal-overlay hidden">
+        <div class="modal-content questionnaire-content">
+            <button id="close-questionnaire" class="close-btn"><i class="fas fa-times"></i></button>
+            <div class="modal-header">
+                <i class="fa-solid fa-clipboard-list auth-logo"></i>
+                <h2>Personalize Your Profile</h2>
+                <p>Help Vitdoc understand you better for more accurate insights.</p>
+            </div>
+            
+            <form id="questionnaire-form">
+                <!-- Section 1: Basic Info -->
+                <div class="q-section active" id="q-section-1">
+                    <h3>1. Basic Information</h3>
+                    <div class="form-group">
+                        <label for="q-name">Name</label>
+                        <input type="text" id="q-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="q-age">Age</label>
+                        <input type="number" id="q-age" min="1" max="120" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Sex</label>
+                        <div class="radio-group">
+                            <label><input type="radio" name="q-sex" value="Male" required> Male</label>
+                            <label><input type="radio" name="q-sex" value="Female"> Female</label>
+                            <label><input type="radio" name="q-sex" value="Other"> Other</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="q-occupation">Occupation</label>
+                        <input type="text" id="q-occupation" required>
+                    </div>
+                    <div class="form-navigation">
+                        <button type="button" class="btn-next q-btn" data-next="2">Next <i class="fas fa-arrow-right"></i></button>
+                    </div>
+                </div>
+
+                <!-- Section 2: Current Medical Conditions -->
+                <div class="q-section hidden" id="q-section-2">
+                    <h3>2. Current Medical Conditions</h3>
+                    <div class="form-group">
+                        <label>Are you currently diagnosed with any condition? (Select all that apply)</label>
+                        <div class="checkbox-group grid-2">
+                            <label><input type="checkbox" name="q-current-cond" value="None"> None</label>
+                            <label><input type="checkbox" name="q-current-cond" value="Diabetes"> Diabetes</label>
+                            <label><input type="checkbox" name="q-current-cond" value="Hypertension"> Hypertension</label>
+                            <label><input type="checkbox" name="q-current-cond" value="Thyroid disorder"> Thyroid disorder</label>
+                            <label><input type="checkbox" name="q-current-cond" value="Depression / Anxiety"> Depression / Anxiety</label>
+                            <label><input type="checkbox" name="q-current-cond" value="Other"> Other</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Are you currently pregnant or breastfeeding?</label>
+                        <div class="radio-group-vertical">
+                            <label><input type="radio" name="q-pregnancy" value="No" required> No</label>
+                            <label><input type="radio" name="q-pregnancy" value="Pregnant"> Pregnant</label>
+                            <label><input type="radio" name="q-pregnancy" value="Breastfeeding"> Breastfeeding</label>
+                        </div>
+                    </div>
+                    <div class="form-navigation">
+                        <button type="button" class="btn-prev q-btn-outline" data-prev="1"><i class="fas fa-arrow-left"></i> Back</button>
+                        <button type="button" class="btn-next q-btn" data-next="3">Next <i class="fas fa-arrow-right"></i></button>
+                    </div>
+                </div>
+
+                <!-- Section 3: Past Medical History -->
+                <div class="q-section hidden" id="q-section-3">
+                    <h3>3. Past Medical History</h3>
+                    <div class="form-group">
+                        <label>Have you ever been diagnosed with any of the following?</label>
+                        <div class="checkbox-group grid-2">
+                            <label><input type="checkbox" name="q-past-cond" value="Iron deficiency anemia"> Iron deficiency anemia</label>
+                            <label><input type="checkbox" name="q-past-cond" value="Vitamin B12 deficiency"> Vitamin B12 deficiency</label>
+                            <label><input type="checkbox" name="q-past-cond" value="Vitamin D deficiency"> Vitamin D deficiency</label>
+                            <label><input type="checkbox" name="q-past-cond" value="Thyroid disorder"> Thyroid disorder</label>
+                            <label><input type="checkbox" name="q-past-cond" value="Diabetes"> Diabetes</label>
+                            <label><input type="checkbox" name="q-past-cond" value="PCOS"> PCOS</label>
+                            <label><input type="checkbox" name="q-past-cond" value="Gastrointestinal disorder"> Gastrointestinal disorder</label>
+                            <label><input type="checkbox" name="q-past-cond" value="Liver disease"> Liver disease</label>
+                            <label><input type="checkbox" name="q-past-cond" value="Kidney disease"> Kidney disease</label>
+                            <label><input type="checkbox" name="q-past-cond" value="None"> None</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Have you had any major surgery?</label>
+                        <div class="radio-group">
+                            <label><input type="radio" name="q-surgery-radio" value="No" required> No</label>
+                            <label><input type="radio" name="q-surgery-radio" value="Yes"> Yes</label>
+                        </div>
+                        <input type="text" id="q-surgery-details" placeholder="Please specify if yes" class="conditional-input" style="display:none; margin-top:10px; width:100%; padding:10px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-input); color:var(--text-primary);">
+                    </div>
+                    <div class="form-group">
+                        <label>Family history of:</label>
+                        <div class="checkbox-group">
+                            <label><input type="checkbox" name="q-family" value="Diabetes"> Diabetes</label>
+                            <label><input type="checkbox" name="q-family" value="Thyroid disorder"> Thyroid disorder</label>
+                            <label><input type="checkbox" name="q-family" value="Hypertension"> Hypertension</label>
+                            <label><input type="checkbox" name="q-family" value="Heart problems"> Heart problems</label>
+                            <label><input type="checkbox" name="q-family" value="None"> None</label>
+                        </div>
+                    </div>
+                    <div class="form-navigation">
+                        <button type="button" class="btn-prev q-btn-outline" data-prev="2"><i class="fas fa-arrow-left"></i> Back</button>
+                        <button type="button" class="btn-next q-btn" data-next="4">Next <i class="fas fa-arrow-right"></i></button>
+                    </div>
+                </div>
+
+                <!-- Section 4: Lifestyle Assessment -->
+                <div class="q-section hidden" id="q-section-4">
+                    <h3>4. Lifestyle Assessment</h3>
+                    <div class="form-group">
+                        <label>Physical activity level</label>
+                        <div class="radio-group-vertical">
+                            <label><input type="radio" name="q-activity" value="Sedentary" required> Sedentary</label>
+                            <label><input type="radio" name="q-activity" value="Light"> Light (walking/yoga 1–2x/week)</label>
+                            <label><input type="radio" name="q-activity" value="Moderate"> Moderate (3–4x/week exercise)</label>
+                            <label><input type="radio" name="q-activity" value="Intense"> Intense (daily workouts/sports)</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Sunlight exposure per day</label>
+                        <div class="radio-group-vertical">
+                            <label><input type="radio" name="q-sunlight" value="<15 minutes" required> &lt;15 minutes</label>
+                            <label><input type="radio" name="q-sunlight" value="15–30 minutes"> 15–30 minutes</label>
+                            <label><input type="radio" name="q-sunlight" value=">30 minutes"> &gt;30 minutes</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Sleep duration</label>
+                        <div class="radio-group grid-2">
+                            <label><input type="radio" name="q-sleep" value="<5 hours" required> &lt;5 hours</label>
+                            <label><input type="radio" name="q-sleep" value="5–6 hours"> 5–6 hours</label>
+                            <label><input type="radio" name="q-sleep" value="7–8 hours"> 7–8 hours</label>
+                            <label><input type="radio" name="q-sleep" value=">8 hours"> &gt;8 hours</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Stress level</label>
+                        <div class="radio-group grid-2">
+                            <label><input type="radio" name="q-stress" value="Low" required> Low</label>
+                            <label><input type="radio" name="q-stress" value="Moderate"> Moderate</label>
+                            <label><input type="radio" name="q-stress" value="High"> High</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Smoking or tobacco use</label>
+                        <div class="radio-group grid-2">
+                            <label><input type="radio" name="q-smoking" value="Never" required> Never</label>
+                            <label><input type="radio" name="q-smoking" value="Occasional"> Occasional</label>
+                            <label><input type="radio" name="q-smoking" value="Regular"> Regular</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Alcohol consumption</label>
+                        <div class="radio-group grid-2">
+                            <label><input type="radio" name="q-alcohol" value="Never" required> Never</label>
+                            <label><input type="radio" name="q-alcohol" value="Occasional"> Occasional</label>
+                            <label><input type="radio" name="q-alcohol" value="Weekly"> Weekly</label>
+                            <label><input type="radio" name="q-alcohol" value="Frequent"> Frequent</label>
+                        </div>
+                    </div>
+                    <div class="form-navigation">
+                        <button type="button" class="btn-prev q-btn-outline" data-prev="3"><i class="fas fa-arrow-left"></i> Back</button>
+                        <button type="button" class="btn-next q-btn" data-next="5">Next <i class="fas fa-arrow-right"></i></button>
+                    </div>
+                </div>
+
+                <!-- Section 5: Dietary Habits -->
+                <div class="q-section hidden" id="q-section-5">
+                    <h3>5. Dietary Habits & Supplements</h3>
+                    <div class="form-group">
+                        <label>Diet type</label>
+                        <div class="radio-group grid-2">
+                            <label><input type="radio" name="q-diet" value="Vegan" required> Vegan</label>
+                            <label><input type="radio" name="q-diet" value="Vegetarian"> Vegetarian</label>
+                            <label><input type="radio" name="q-diet" value="Eggetarian"> Eggetarian</label>
+                            <label><input type="radio" name="q-diet" value="Non-vegetarian"> Non-vegetarian</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Daily water intake</label>
+                        <div class="radio-group grid-2">
+                            <label><input type="radio" name="q-water" value="<1 L" required> &lt;1 L</label>
+                            <label><input type="radio" name="q-water" value="1–2 L"> 1–2 L</label>
+                            <label><input type="radio" name="q-water" value=">2 L"> &gt;2 L</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Current medication taken?</label>
+                        <div class="radio-group">
+                            <label><input type="radio" name="q-meds-radio" value="No" required> No</label>
+                            <label><input type="radio" name="q-meds-radio" value="Yes"> Yes</label>
+                        </div>
+                        <input type="text" id="q-meds-details" placeholder="Please specify if yes" class="conditional-input" style="display:none; margin-top:10px; width:100%; padding:10px; border-radius:8px; border:1px solid var(--border-color); background:var(--bg-input); color:var(--text-primary);">
+                    </div>
+                    
+                    <div class="form-navigation">
+                        <button type="button" class="btn-prev q-btn-outline" data-prev="4"><i class="fas fa-arrow-left"></i> Back</button>
+                        <button type="submit" class="auth-submit-btn submit-btn" id="q-submit">Complete Profile <i class="fas fa-check"></i></button>
+                    </div>
+                </div>
+                
+                <div class="step-indicator">
+                    <span class="step active" id="step-1"></span>
+                    <span class="step" id="step-2"></span>
+                    <span class="step" id="step-3"></span>
+                    <span class="step" id="step-4"></span>
+                    <span class="step" id="step-5"></span>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
