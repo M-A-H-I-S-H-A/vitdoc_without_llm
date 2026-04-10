@@ -1,6 +1,6 @@
 # vitaminAIChatbot
 
-🔗 **Live Demo:** [https://m-a-h-i-s-h-a.github.io/vitaminAICHATBOT/](https://m-a-h-i-s-h-a.github.io/vitaminAICHATBOT/)
+🔗 **Live Demo:**  https://m-a-h-i-s-h-a.github.io/vitdoc_without_llm/
 
 ---
 
